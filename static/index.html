@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light">
+  <title>LegacyVault · Không gian xác minh</title>
+  <link rel="stylesheet" href="/static/style.css?v=ui-03"><script src="/static/app.js?v=ui-03" defer></script>
+</head>
+<body>
+<svg class="svg-sprite" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+<symbol id="icon-card" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="8" cy="10" r="1.5"/><path d="M5.5 15c.5-2.5 4.5-2.5 5 0M14 9h4M14 13h4"/></symbol>
+<symbol id="icon-face" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3m13-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m13-5v3a2 2 0 0 1-2 2h-3"/><path d="M8 9h.01M16 9h.01M12 10v3M8.5 15c2 2 5 2 7 0"/></symbol>
+<symbol id="icon-camera" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="3"/><path d="m7 7 1-3h8l1 3"/><circle cx="12" cy="13" r="3"/></symbol>
+<symbol id="icon-upload" viewBox="0 0 24 24"><path d="M12 16V3m-5 5 5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></symbol>
+<symbol id="icon-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol>
+<symbol id="icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></symbol>
+<symbol id="icon-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+<symbol id="icon-download" viewBox="0 0 24 24"><path d="M12 3v13m-5-5 5 5 5-5M4 17v3h16v-3"/></symbol>
+</defs></svg>
+<a class="skip-link" href="#workspace">Đến nội dung chính</a>
+<aside class="sidebar">
+  <a class="brand" href="/" aria-label="LegacyVault, trang xác minh"><span class="brand-mark">L</span><span><strong>LegacyVault</strong><small>Identity workspace</small></span></a>
+  <div class="nav-caption">XÁC MINH DANH TÍNH</div>
+  <nav class="tabs" role="tablist" aria-orientation="vertical" aria-label="Các bước eKYC">
+    <button class="tab active" role="tab" aria-selected="true" aria-controls="panel-ocr" id="tab-ocr" data-tab="ocr"><span class="step">01</span><span class="tab-label"><strong>Đọc căn cước</strong><small>Thông tin &amp; nơi cư trú</small></span></button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="panel-face" id="tab-face" data-tab="face" tabindex="-1"><span class="step">02</span><span class="tab-label"><strong>So khớp khuôn mặt</strong><small>CCCD đã khóa &amp; selfie</small></span></button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="panel-live" id="tab-live" data-tab="live" tabindex="-1"><span class="step">03</span><span class="tab-label"><strong>Kiểm tra camera</strong><small>Thử thách trực tiếp</small></span></button>
+  </nav>
+  <div class="sidebar-note"><svg class="icon"><use href="#icon-lock"/></svg><strong>Một luồng, đủ thông tin.</strong><p>Đọc căn cước rồi chọn selfie để đối chiếu khuôn mặt.</p></div>
+  <div class="sidebar-footer"><span class="avatar">LV</span><span>Không gian thử nghiệm<small>LegacyVault · eKYC</small></span></div>
+</aside>
+<div class="app-shell">
+  <header class="topbar"><div class="breadcrumb">Không gian xác minh <span>/</span> <strong id="section-label">Căn cước</strong></div><div class="topbar-right"><span class="environment-chip">PROTOTYPE · LOCAL</span><div class="runtime"><span class="dot" id="health-dot"></span><span id="health-label">Đang kiểm tra dịch vụ…</span></div></div></header>
+  <main id="workspace">
+    <section id="panel-ocr" class="panel" role="tabpanel" aria-labelledby="tab-ocr">
+      <div class="page-heading"><span class="eyebrow">LEGACYVAULT / IDENTITY</span><h1>Đọc thông tin căn cước.</h1><p>Thêm mặt trước để bắt đầu. Với thẻ mới, thêm mặt sau để lấy nơi cư trú.</p></div>
+      <div class="ocr-layout">
+        <article class="card document-card"><div class="card-head"><h2>Giấy tờ của bạn</h2><span class="status" id="ocr-status">Chưa quét</span></div>
+          <div class="scan-tabs" role="tablist" aria-label="Mặt căn cước"><button id="scan-tab-front" class="scan-tab active" data-scan="front" role="tab" aria-selected="true" aria-controls="scan-front">01 <span>Mặt trước</span></button><button id="scan-tab-back" class="scan-tab" data-scan="back" role="tab" aria-selected="false" aria-controls="scan-back" tabindex="-1">02 <span>Mặt sau · tùy chọn</span></button></div>
+          <section id="scan-front" role="tabpanel" aria-labelledby="scan-tab-front">
+            <label class="upload-zone document-upload" id="ocr-zone" for="ocr-file"><span class="upload-empty"><span class="upload-icon"><svg class="icon"><use href="#icon-card"/></svg></span><strong>Chọn ảnh mặt trước</strong><span>Kéo ảnh vào đây hoặc bấm để chọn</span><small>JPG, PNG, WebP · Tối đa 8 MB</small></span><div class="image-stage" id="ocr-image-stage" hidden><canvas id="ocr-canvas"></canvas></div><span class="replace-image"><svg class="icon"><use href="#icon-upload"/></svg> Thay ảnh</span><input id="ocr-file" type="file" accept="image/jpeg,image/png,image/webp"></label>
+            <div class="file-row"><span class="file-meta" id="ocr-file-meta">Chụp rõ chữ, đủ viền quanh thẻ.</span><button class="text-button" id="sample-btn">Dùng ảnh chữ mẫu ↗</button></div>
+            <button class="button primary full" id="ocr-run" disabled><span>Đọc thông tin</span><svg class="icon"><use href="#icon-arrow"/></svg></button>
+            <div class="notice" id="ocr-message" aria-live="polite">Kết quả nhận diện sẽ xuất hiện dưới ảnh sau mỗi lần quét.</div>
+            <section class="scan-detected" id="front-detected" aria-label="Thông tin nhận diện từ mặt trước" hidden><div class="scan-result-head"><h3>Thông tin nhận diện · mặt trước</h3><span id="front-detected-meta"></span></div><dl><div><dt>Số căn cước</dt><dd id="front-detected-id">—</dd></div><div><dt>Họ và tên</dt><dd id="front-detected-name">—</dd></div><div><dt>Ngày sinh</dt><dd id="front-detected-dob">—</dd></div><div><dt>Nơi cư trú</dt><dd id="front-detected-address">—</dd></div></dl></section>
+            <details id="raw-details"><summary>Xem chữ hệ thống đọc từ mặt trước <span id="line-count"></span></summary><div id="ocr-lines" class="raw-lines"></div></details>
+          </section>
+          <section id="scan-back" role="tabpanel" aria-labelledby="scan-tab-back" hidden>
+            <p class="scan-help">Dùng mặt sau cùng thẻ để lấy nơi cư trú. Nếu mặt trước đã có địa chỉ, có thể bỏ qua.</p>
+            <label class="upload-zone document-upload" id="back-zone" for="back-file"><span class="upload-empty"><span class="upload-icon"><svg class="icon"><use href="#icon-card"/></svg></span><strong>Chọn ảnh mặt sau</strong><span>Chỉ trích nơi cư trú, không trích vân tay</span><small>JPG, PNG, WebP · Tối đa 8 MB</small></span><img id="back-preview" alt="Ảnh mặt sau căn cước" hidden><span class="replace-image"><svg class="icon"><use href="#icon-upload"/></svg> Thay ảnh</span><input id="back-file" type="file" accept="image/jpeg,image/png,image/webp"></label>
+            <div class="file-meta" id="back-file-meta">Đọc mặt trước trước khi thêm mặt sau.</div>
+            <button class="button primary full" id="back-run" disabled><span>Đọc nơi cư trú</span><svg class="icon"><use href="#icon-arrow"/></svg></button>
+            <div class="notice" id="back-message" aria-live="polite">Chưa chọn mặt sau.</div>
+            <section class="scan-detected" id="back-detected" aria-label="Thông tin nhận diện từ mặt sau" hidden><div class="scan-result-head"><h3>Thông tin nhận diện · mặt sau</h3><span id="back-detected-meta"></span></div><dl><div><dt>Số đối chiếu</dt><dd id="back-detected-id">—</dd></div><div><dt>Nơi cư trú</dt><dd id="back-detected-address">—</dd></div></dl><p id="back-detected-verify" class="helper"></p></section>
+            <details><summary>Xem chữ hệ thống đọc từ mặt sau <span id="back-line-count"></span></summary><div id="back-lines" class="raw-lines"></div></details>
+          </section>
+          <div class="document-tip"><svg class="icon"><use href="#icon-lock"/></svg><p>Mặt trước sau khi đọc được khóa để so khớp selfie. Chọn thẻ khác sẽ xóa tham chiếu và kết quả cũ.</p></div>
+        </article>
+        <article class="card identity-card"><div class="card-head"><h2>Thông tin nhận diện</h2><span class="subtle-badge">Có thể chỉnh sửa</span></div><p class="muted">Đối chiếu với thẻ gốc trước khi tiếp tục.</p>
+          <div class="fields"><label class="wide">Số căn cước<input id="field-id" placeholder="12 chữ số" inputmode="numeric" autocomplete="off"></label><label class="wide">Họ và tên<input id="field-name" placeholder="Họ tên có dấu" autocomplete="off"></label><label>Ngày sinh<input id="field-dob" type="date"></label><div class="field-source"><span>Nguồn địa chỉ</span><strong id="address-origin">Chưa có địa chỉ</strong></div><label class="wide">Nơi cư trú / địa chỉ thường trú<textarea id="field-address" rows="3" placeholder="Lấy từ mặt trước CCCD cũ hoặc mặt sau thẻ mới" autocomplete="off"></textarea></label></div>
+          <div class="identity-note"><svg class="icon"><use href="#icon-check"/></svg><p>Thông tin được gợi ý từ ảnh. Phần dưới mỗi ảnh quét giữ kết quả gốc để bạn đối chiếu.</p></div>
+          <div class="result-actions"><button class="button secondary" id="export-ocr" disabled><svg class="icon"><use href="#icon-download"/></svg>Tải kết quả</button><button class="button primary" id="continue-face" disabled><span>Tiếp tục so khớp mặt</span><svg class="icon"><use href="#icon-arrow"/></svg></button></div>
+        </article>
+      </div>
+    </section>
+    <section id="panel-face" class="panel" role="tabpanel" aria-labelledby="tab-face" hidden>
+      <div class="page-heading"><span class="eyebrow">LEGACYVAULT / IDENTITY</span><h1>Một căn cước. Một khuôn mặt.</h1><p>Ảnh tham chiếu lấy từ căn cước đã đọc. Selfie có thể chọn trên thiết bị hoặc từ camera.</p></div>
+      <div class="face-layout"><article class="card"><div class="card-head"><h2>Ảnh đối chiếu</h2><button class="text-button" id="change-document">Đổi thẻ ở Đọc căn cước ↗</button></div>
+        <div class="face-inputs"><div><h3>Căn cước đã đọc</h3><span class="lock-badge"><svg class="icon"><use href="#icon-lock"/></svg> Ảnh tham chiếu đã khóa</span><div class="locked-reference"><img class="face-preview" id="reference-preview" alt="Mặt trước căn cước đã đọc và khóa" hidden><div id="reference-placeholder" class="reference-placeholder"><svg class="icon"><use href="#icon-card"/></svg><p>Đọc mặt trước để lấy ảnh tham chiếu.</p></div></div><p class="helper" id="reference-meta">Đọc mặt trước ở mục Đọc CCCD để bắt đầu.</p></div>
+          <div><h3>Selfie của bạn</h3><span class="selfie-source" id="selfie-source">Chưa có selfie.</span><label class="upload-zone selfie-upload" id="selfie-zone" for="selfie-file"><span class="upload-empty"><span class="upload-icon"><svg class="icon"><use href="#icon-face"/></svg></span><strong>Chọn selfie từ thiết bị</strong><small>JPG, PNG, WebP · Tối đa 8 MB</small></span><img class="face-preview" id="selfie-preview" alt="Ảnh selfie đã chọn" hidden><span class="replace-image">Thay selfie</span><input id="selfie-file" type="file" accept="image/jpeg,image/png,image/webp" disabled></label><button class="button secondary full" id="selfie-camera" disabled><svg class="icon"><use href="#icon-camera"/></svg>Lấy selfie từ kiểm tra camera</button></div>
+        </div>
+        <details class="settings"><summary>Điều chỉnh ngưỡng thử nghiệm</summary><label>Ngưỡng cosine<input id="face-threshold" type="number" min="0.1" max="0.9" step="0.001" value="0.363"></label><p class="helper">Ngưỡng thử của SFace; cần hiệu chỉnh trên dữ liệu thực tế.</p></details>
+        <p class="helper face-hint">So khớp ảnh tải lên chưa bao gồm thử thách camera.</p><button class="button primary full" id="face-run" disabled><span>So khớp khuôn mặt</span><svg class="icon"><use href="#icon-arrow"/></svg></button>
+      </article>
+      <article class="card face-result-card"><div class="card-head"><h2>Kết quả so khớp</h2><span class="status" id="face-status">Chưa chạy</span></div><div class="empty-result" id="face-empty"><span class="empty-symbol"><svg class="icon"><use href="#icon-face"/></svg></span><h3>Chờ ảnh đối chiếu</h3><p>Đọc mặt trước căn cước, rồi chọn selfie để bắt đầu.</p></div>
+        <div id="face-result" hidden><div class="match-verdict" id="match-verdict"><span class="verdict-symbol" id="match-symbol">✓</span><h3 id="match-title">Kết quả so khớp</h3><p id="match-caption"></p></div><div class="score-row"><div><span class="eyebrow">ĐIỂM COSINE</span><strong class="score" id="face-score">—</strong></div><span class="score-threshold">Ngưỡng <strong id="face-threshold-result">—</strong></span></div><div class="meter"><span id="face-meter"></span></div><div class="crop-pair"><figure><img id="ref-crop" alt="Khuôn mặt từ căn cước đã căn chỉnh"><figcaption>CCCD đã khóa</figcaption></figure><figure><img id="selfie-crop" alt="Khuôn mặt selfie đã căn chỉnh"><figcaption>Selfie</figcaption></figure></div></div><div class="notice" id="face-message" aria-live="polite">Điểm cosine không phải phần trăm xác suất.</div>
+      </article></div>
+    </section>
+    <section id="panel-live" class="panel" role="tabpanel" aria-labelledby="tab-live" hidden>
+      <div class="page-heading"><span class="eyebrow">LEGACYVAULT / IDENTITY</span><h1>Bạn đang ở trước camera.</h1><p>Giữ khuôn mặt trong khung và làm theo hướng dẫn. Chỉ lấy selfie khi phiên đạt thử thách.</p></div>
+      <div class="live-layout"><article class="card camera-card"><div class="card-head"><h2>Camera trực tiếp</h2><span class="status" id="camera-status">Đang tắt</span></div><div class="camera-stage"><video id="camera-video" autoplay muted playsinline hidden></video><div class="camera-placeholder" id="camera-placeholder"><svg class="icon"><use href="#icon-camera"/></svg><h3>Sẵn sàng khi bạn sẵn sàng.</h3><p>Bấm Mở camera để bắt đầu.</p></div><div class="face-guide" id="face-guide" hidden></div><span class="camera-tag" id="camera-tag" hidden><span></span> TRỰC TIẾP</span><div class="challenge-prompt" id="live-prompt" aria-live="polite">Mở camera để bắt đầu.</div></div><p class="helper camera-hint">Giữ đủ sáng, bỏ khẩu trang và đặt mặt trong khung hướng dẫn.</p><div class="camera-actions"><button class="button secondary" id="camera-open"><svg class="icon"><use href="#icon-camera"/></svg>Mở camera</button><button class="button secondary" id="camera-stop" disabled>Tắt camera</button><button class="button primary" id="live-start" disabled><span>Bắt đầu thử thách</span><svg class="icon"><use href="#icon-arrow"/></svg></button></div></article>
+        <article class="card live-result-card"><div class="card-head"><h2>Tiến trình thử thách</h2><span class="status" id="live-status">Chưa chạy</span></div><p class="muted">Thực hiện theo thứ tự hệ thống đưa ra.</p><ol id="challenge-list" class="challenge-list"></ol><div class="metrics"><div><span>Động tác</span><strong id="gesture-result">Chưa kiểm tra</strong></div><div><span>Chống giả mạo</span><strong id="pad-score">—</strong></div><div><span>Khung hình đã đánh giá</span><strong id="pad-samples">0</strong></div><div><span>Thời gian còn lại</span><strong class="time-value" id="live-time">—</strong></div></div><div class="notice" id="live-message" aria-live="polite">Hoàn thành động tác và đạt chống giả mạo để chuyển selfie sang màn so khớp.</div><button class="button primary full" id="use-live-selfie" disabled><span>Dùng selfie để so khớp</span><svg class="icon"><use href="#icon-arrow"/></svg></button></article>
+      </div>
+      <details class="card pad-card"><summary>Thử riêng ảnh chống giả mạo <span class="subtle-badge">Nâng cao</span></summary><div class="pad-body"><p class="muted">Chọn một khung hình để xem model đánh giá. Ảnh đơn chưa chứng minh người thật đang trước camera.</p><div class="pad-controls"><input id="pad-file" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Ảnh thử chống giả mạo"><button class="button secondary" id="pad-run" disabled>Đánh giá ảnh</button></div><div class="notice" id="pad-message" aria-live="polite">Có thể thử ảnh người thật và ảnh màn hình được chụp lại.</div></div></details>
+    </section>
+    <footer><span>Ảnh tải lên được xử lý trong bộ nhớ · Prototype LegacyVault</span><span>Chưa xác thực giấy tờ thật/giả hoặc bảo đảm chống deepfake.</span></footer>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

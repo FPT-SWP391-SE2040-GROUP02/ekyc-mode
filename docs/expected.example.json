@@ -1,0 +1,21 @@
+{
+  "_ghi_chu": "Mẫu cấu trúc cho expected.local.json. Đặt bản thật (với dữ liệu của chính bạn) cạnh ảnh thử, trong thư mục EKYC_TEST_PHOTOS. KHÔNG commit bản thật.",
+  "fronts": {
+    "tien-to-ten-anh-mat-truoc": {
+      "id_number": "000000000001",
+      "full_name": "NGUYỄN VĂN AN",
+      "date_of_birth": "2000-02-01",
+      "address": "1 Đường Mẫu, Phường Mẫu, Thành phố Mẫu"
+    }
+  },
+  "backs": {
+    "tien-to-ten-anh-mat-sau": {
+      "id_number": "000000000001",
+      "address": "1 Đường Mẫu, Phường Mẫu, Thành phố Mẫu"
+    }
+  },
+  "selfie_prefix": "tien-to-ten-anh-selfie",
+  "face_matches": {
+    "tien-to-ten-anh-mat-truoc": true
+  }
+}

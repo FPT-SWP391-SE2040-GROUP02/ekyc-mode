@@ -1,0 +1,116 @@
+[
+  {
+    "file": "PADDLEOCR-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/PaddlePaddle/PaddleOCR/main/LICENSE",
+    "bytes": 11376,
+    "sha256": "3840c5c0c61c294264d2dd77b8777be6ddd90121ef4e0e64abcd22edea581d6e"
+  },
+  {
+    "file": "YUNET-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/opencv/opencv_zoo/main/models/face_detection_yunet/LICENSE",
+    "bytes": 1085,
+    "sha256": "c83b8120c50ccbd4c4f96edf53141bdd566ebb8f8e9227e415326aa1b1aba958"
+  },
+  {
+    "file": "SFACE-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/opencv/opencv_zoo/main/models/face_recognition_sface/LICENSE",
+    "bytes": 11358,
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "file": "MEDIAPIPE-CODE-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/google-ai-edge/mediapipe/master/LICENSE",
+    "bytes": 12331,
+    "sha256": "8707eef0533987efc5b155d64761eeb6e20793f50b9bd1a68dad1cf4719d0ed8"
+  },
+  {
+    "file": "vgg_seq2seq.pth",
+    "source": "https://vocr.vn/data/vietocr/vgg_seq2seq.pth",
+    "bytes": 89575371,
+    "sha256": "0921503a41375a0584268e23ef3d414ea478a8fe8777865c7745d38f2d0bc5db"
+  },
+  {
+    "file": "vietocr-base.yml",
+    "source": "https://raw.githubusercontent.com/pbcquoc/vietocr/master/config/base.yml",
+    "bytes": 1809,
+    "sha256": "9c8283fadb950f06f5d3400475f80d5355700ff315c9c48b7875e6ea66647d1c"
+  },
+  {
+    "file": "vietocr-vgg-seq2seq.yml",
+    "source": "https://raw.githubusercontent.com/pbcquoc/vietocr/master/config/vgg-seq2seq.yml",
+    "bytes": 673,
+    "sha256": "0160ba8d442ae96f4c6095b92ac3521c59b83ce6eda9fd5459e8628a5586c3e8"
+  },
+  {
+    "file": "VIETOCR-LICENSE.txt",
+    "source": "https://raw.githubusercontent.com/pbcquoc/vietocr/master/LICENSE",
+    "bytes": 11357,
+    "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+  },
+  {
+    "file": "yunet.onnx",
+    "source": "https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx",
+    "bytes": 232589,
+    "sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4"
+  },
+  {
+    "file": "sface.onnx",
+    "source": "https://media.githubusercontent.com/media/opencv/opencv_zoo/main/models/face_recognition_sface/face_recognition_sface_2021dec.onnx",
+    "bytes": 38696353,
+    "sha256": "0ba9fbfa01b5270c96627c4ef784da859931e02f04419c829e83484087c34e79"
+  },
+  {
+    "file": "face_landmarker.task",
+    "source": "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+    "bytes": 3758596,
+    "sha256": "64184e229b263107bc2b804c6625db1341ff2bb731874b0bcc2fe6544e0bc9ff"
+  },
+  {
+    "file": "2.7_80x80_MiniFASNetV2.pth",
+    "source": "https://raw.githubusercontent.com/minivision-ai/Silent-Face-Anti-Spoofing/master/resources/anti_spoof_models/2.7_80x80_MiniFASNetV2.pth",
+    "bytes": 1849453,
+    "sha256": "a5eb02e1843f19b5386b953cc4c9f011c3f985d0ee2bb9819eea9a142099bec0"
+  },
+  {
+    "file": "4_0_0_80x80_MiniFASNetV1SE.pth",
+    "source": "https://raw.githubusercontent.com/minivision-ai/Silent-Face-Anti-Spoofing/master/resources/anti_spoof_models/4_0_0_80x80_MiniFASNetV1SE.pth",
+    "bytes": 1856130,
+    "sha256": "84ee1d37d96894d5e82de5a57df044ef80a58be2b218b5ed7cdfd875ec2f5990"
+  },
+  {
+    "file": "PP-OCRv5_mobile_det/inference.json",
+    "source": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_det_infer.tar",
+    "bytes": 229777,
+    "sha256": "05feef1acb00aa4cd7362b15f7f501fc4f99d7b1fa73c1c871e0c7b1504b0f5c"
+  },
+  {
+    "file": "PP-OCRv5_mobile_det/inference.pdiparams",
+    "source": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_det_infer.tar",
+    "bytes": 4692937,
+    "sha256": "afa1820cb16c1fd0dad589d0f8b389139061c1ef6d68019685fd07be997dda5b"
+  },
+  {
+    "file": "PP-OCRv5_mobile_det/inference.yml",
+    "source": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv5_mobile_det_infer.tar",
+    "bytes": 903,
+    "sha256": "98069072e1b6b37d727fd9d9f11725faa46d6ea0de012f2ed26caea011c37699"
+  },
+  {
+    "file": "PP-OCRv6_small_rec/inference.json",
+    "source": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv6_small_rec_infer.tar",
+    "bytes": 208004,
+    "sha256": "f0bf53c853937a917affdd74467472167727f8ab0f0f7bded01c4a16c27e46e6"
+  },
+  {
+    "file": "PP-OCRv6_small_rec/inference.pdiparams",
+    "source": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv6_small_rec_infer.tar",
+    "bytes": 21074618,
+    "sha256": "406e1e689c9a7fbb04178007a3fe10cf852afe7bf8bb3bc6dbb9d532b13bd907"
+  },
+  {
+    "file": "PP-OCRv6_small_rec/inference.yml",
+    "source": "https://paddle-model-ecology.bj.bcebos.com/paddlex/official_inference_model/paddle3.0.0/PP-OCRv6_small_rec_infer.tar",
+    "bytes": 150579,
+    "sha256": "ab078671bb49f06228eadccd34f1bb501e157f7a047095ffb943ba81512c77d1"
+  }
+]

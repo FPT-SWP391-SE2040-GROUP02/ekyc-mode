@@ -1,0 +1,8 @@
+BẢN TÍCH HỢP ĐẦY ĐỦ DUY NHẤT: 0.2.2
+Mở START.cmd trong thư mục này, vào http://127.0.0.1:8879/
+Python .venv và model đã nằm trong thư mục này; không cần prototype cũ ở Downloads.
+Nếu đang mở máy chủ cũ, dừng bằng Ctrl+C trước rồi chạy START.cmd mới.
+Test: mở TEST.cmd; hướng dẫn từng luồng trong README.md.
+Giao diện mới ui-03: tải lại trang bằng Ctrl+F5 nếu vẫn thấy mẫu cũ.
+Mặt trước / Mặt sau có tab riêng; kết quả OCR gốc nằm dưới ảnh mỗi lần quét.
+Thông tin tổng hợp có thể sửa ở bảng bên phải; dùng Tiếp tục so khớp mặt để chuyển màn hình.

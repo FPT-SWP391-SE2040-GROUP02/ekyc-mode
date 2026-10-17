@@ -1,0 +1,14 @@
+.venv/
+.cache/
+dist/
+__pycache__/
+*.pyc
+test-results/
+*.jpg
+*.jpeg
+*.png
+models/*
+!models/*-LICENSE.txt
+!models/manifest.json
+expected.local.json
+*.local.json
