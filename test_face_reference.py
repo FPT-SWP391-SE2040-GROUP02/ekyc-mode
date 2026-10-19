@@ -117,6 +117,24 @@ class LockedFaceApiTests(unittest.TestCase):
         self.assertEqual(face.call_count, 1, 'Only selfie is reprocessed')
         np.testing.assert_array_equal(similarity.call_args.args[0], np.ones((1,2)))
 
+    def test_face_embedding_returns_vector_without_storing_anything(self):
+        feature = np.arange(128, dtype=np.float32).reshape(1, 128)
+        with patch.object(store.models, 'face', return_value=(None, None, feature)) as face:
+            response = self.client.post('/api/face-embedding', files={'selfie':('selfie.png',self.photo)})
+        self.assertEqual(response.status_code, 200, response.text)
+        body = response.json()
+        self.assertEqual(body['model'], 'sface')
+        self.assertEqual(body['dimension'], 128)
+        self.assertEqual(body['embedding'], [float(value) for value in range(128)])
+        self.assertEqual(face.call_count, 1)
+        self.assertFalse(store.references, 'Không giữ lại gì trong bộ nhớ dịch vụ')
+        self.assertEqual(response.headers['cache-control'], 'no-store')
+
+    def test_face_embedding_rejects_image_without_exactly_one_face(self):
+        with patch.object(store.models, 'face', side_effect=InputError('Ảnh cần có đúng một khuôn mặt.')):
+            response = self.client.post('/api/face-embedding', files={'selfie':('selfie.png',self.photo)})
+        self.assertEqual(response.status_code, 422)
+
     def test_deleted_expired_and_unknown_tokens_return_410(self):
         front, _ = self.scan('front', FRONT)
         token = front.json()['document_token']

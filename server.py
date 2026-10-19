@@ -9,6 +9,8 @@ import secrets
 import sys
 import time
 
+import numpy as np
+
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
 if hasattr(sys.stderr, "reconfigure"):
@@ -187,6 +189,21 @@ async def face_match(selfie: UploadFile = File(...), document_token: str = Form(
             result = match_reference(document_token, live_image, threshold)
         result["elapsed_ms"] = round((time.perf_counter() - start) * 1000)
         return result
+    return await run_in_threadpool(process)
+
+
+@app.post("/api/face-embedding")
+async def face_embedding(selfie: UploadFile = File(...)):
+    """Trả vector đặc trưng SFace của đúng một khuôn mặt trong ảnh, để Backend lưu mã hóa làm mẫu khuôn mặt (LV-02).
+
+    Dịch vụ không lưu gì: vector chỉ nằm trong phản hồi này. Ảnh không có đúng một khuôn mặt thì 422 như /api/face-match.
+    """
+    image = await image_from_upload(selfie)
+    def process():
+        with LOCK:
+            _, _, feature = models.face(image)
+        values = [float(value) for value in np.asarray(feature).ravel()]
+        return {"model": "sface", "dimension": len(values), "embedding": values}
     return await run_in_threadpool(process)
 
 

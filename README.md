@@ -80,6 +80,7 @@ Biến môi trường (đều tùy chọn):
 | GET | `/api/health` | Tình trạng model và phiên bản (không cần khóa) |
 | POST | `/api/ocr` | Form: `file`, `side` (`front` hoặc `back`). Trả `fields`, `warnings`, và `document_token` khi đọc mặt trước tìm được đúng một khuôn mặt |
 | POST | `/api/face-match` | Form: `selfie`, `document_token`, `threshold` (0.1 đến 0.9, mặc định 0.363). Trả `score` và `matched` |
+| POST | `/api/face-embedding` | Form: `selfie`. Trả `model` (`sface`), `dimension` (128) và `embedding` (128 số thực) của đúng một khuôn mặt; `422` nếu ảnh không có đúng một khuôn mặt. Dịch vụ không lưu vector, chỉ Backend lưu (mã hóa) làm mẫu khuôn mặt Owner |
 | DELETE | `/api/documents/{document_token}` | Xóa khuôn mặt đã giữ |
 | POST | `/api/anti-spoof` | Form: `file`. Trả `passed` và `live_score` |
 | POST | `/api/liveness/start` | Tạo phiên thử thách, trả `session_id`, `actions`, `prompt` |
@@ -95,6 +96,7 @@ Giới hạn: ảnh tối đa 8 MiB và 20 triệu điểm ảnh; mã tham chi�
 - Backend cấu hình địa chỉ bằng `Ekyc:BaseUrl` (ví dụ `http://127.0.0.1:8879`) và thời gian chờ bằng `Ekyc:TimeoutSeconds`. Để trống `Ekyc:BaseUrl` thì các lệnh eKYC của Backend trả `503`.
 - Frontend **không** gọi trực tiếp dịch vụ này. Trình duyệt gọi Backend (`/api/v1/ekyc/...`), Backend chuyển ảnh sang đây rồi giữ `document_token` và `session_id`; Backend không bao giờ trả hai mã đó cho trình duyệt.
 - Backend tự quyết định đạt hay không: nó so lại điểm khuôn mặt với ngưỡng của mình (cosine 0.363), không tin cờ `matched` do dịch vụ này trả.
+- Mẫu khuôn mặt Owner: Backend gửi selfie của phiên thử thách đã đạt tới `/api/face-embedding`, mã hóa vector nhận được rồi lưu DB; lần so sau Backend lấy vector của selfie mới và tự tính cosine với mẫu đã lưu (ngưỡng 0.363).
 - Họ tên, ngày sinh và số CCCD đầy đủ đọc được chỉ đi qua dịch vụ này và Backend một lần; Backend chỉ lưu 4 số cuối CCCD và kết quả.
 - Hợp đồng API phía Backend nằm ở repo Backend, tệp `docs/api-contract.md`, mục 6.10.
 
