@@ -12,3 +12,4 @@ models/*
 !models/manifest.json
 expected.local.json
 *.local.json
+.embold/
