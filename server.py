@@ -88,7 +88,13 @@ async def local_requests(request: Request, call_next):
         custom_origins = os.environ.get("EKYC_ALLOWED_ORIGINS", "")
         if custom_origins:
             allowed_origins.update([o.strip() for o in custom_origins.split(",") if o.strip()])
-        if "*" not in allowed_origins and origin not in allowed_origins:
+        is_allowed = (
+            "*" in allowed_origins
+            or origin in allowed_origins
+            or origin.endswith(".vercel.app")
+            or origin.endswith(".onrender.com")
+        )
+        if not is_allowed:
             return JSONResponse({"detail": "Chỉ nhận thao tác từ giao diện local của prototype."}, status_code=403)
     response = await call_next(request)
     response.headers["Cache-Control"] = "no-store"

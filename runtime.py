@@ -14,6 +14,18 @@ os.environ.setdefault('DISABLE_MODEL_SOURCE_CHECK', 'True')
 sys.dont_write_bytecode = True
 
 if __name__ == '__main__':
+    # Ensure model weights exist before launching server
+    try:
+        from engine import models
+        readiness = models.readiness()
+        if not all(readiness.values()):
+            print(f"Missing models detected: {readiness}. Downloading missing weights...", flush=True)
+            import download_models
+            download_models.main()
+            print("Model download completed successfully.", flush=True)
+    except Exception as exc:
+        print(f"Warning during model readiness check: {exc}", flush=True)
+
     import uvicorn
     host = os.environ.get('EKYC_HOST', '0.0.0.0')
     port = int(os.environ.get('PORT') or os.environ.get('EKYC_PORT') or '8879')

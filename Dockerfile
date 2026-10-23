@@ -17,8 +17,12 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install --no-cache-dir torch==2.14.1 torchvision==0.29.1 --index-url https://download.pytorch.org/whl/cpu
 
-# Copy source code and bundled model weights / cache
+# Copy source code
 COPY . .
+
+# Download pretrained model weights and verify installation
+RUN python download_models.py
+RUN python check_installation.py
 
 ENV PYTHONUTF8=1
 ENV EKYC_HOST=0.0.0.0
