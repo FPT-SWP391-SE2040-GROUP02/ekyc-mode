@@ -28,7 +28,7 @@ class InputError(ValueError):
     pass
 
 
-def decode_image(data, max_side=1600):
+def decode_image(data, max_side=1024):
     if not data or len(data) > MAX_BYTES:
         raise InputError("Ảnh phải nhỏ hơn 8 MB.")
     try:
@@ -144,13 +144,13 @@ class Models:
                                  text_recognition_model_name="PP-OCRv6_small_rec",
                                  text_recognition_model_dir=str(MODELS / "PP-OCRv6_small_rec"),
                                  use_doc_orientation_classify=False, use_doc_unwarping=False,
-                                 use_textline_orientation=False, device="cpu", cpu_threads=4,
+                                 use_textline_orientation=False, device="cpu", cpu_threads=1,
                                  enable_mkldnn=False)
         if self.vietocr is None:
             import torch
             import yaml
             from vietocr.tool.translate import build_model
-            torch.set_num_threads(4)
+            torch.set_num_threads(1)
             config = yaml.safe_load((MODELS / "vietocr-base.yml").read_text(encoding="utf-8"))
             config.update(yaml.safe_load((MODELS / "vietocr-vgg-seq2seq.yml").read_text(encoding="utf-8")))
             config["device"] = "cpu"
@@ -161,7 +161,8 @@ class Models:
             network.load_state_dict(torch.load(config["weights"], map_location="cpu", weights_only=True))
             network.eval()
             self.vietocr = (network, vocab, config)
-        results = list(self.ocr.predict(image))
+        with torch.no_grad():
+            results = list(self.ocr.predict(image))
         if not results:
             return []
         result = results[0]
@@ -205,7 +206,9 @@ class Models:
         score, anchors = self.document_score(lines)
         best = (score, lines, image, 0)
         if anchors < 2 and not (anchors >= 1 and score >= 15):
+            import gc
             for rotation, angle in ((cv2.ROTATE_90_CLOCKWISE, 90), (cv2.ROTATE_90_COUNTERCLOCKWISE, 270), (cv2.ROTATE_180, 180)):
+                gc.collect()
                 candidate_image = cv2.rotate(image, rotation)
                 candidate_lines = self._read_document_upright(candidate_image)
                 candidate_score, candidate_anchors = self.document_score(candidate_lines)
@@ -269,7 +272,7 @@ class Models:
         import torch
         if not self.pad_models:
             from vendor.minifasnet import MiniFASNetV2, MiniFASNetV1SE
-            torch.set_num_threads(4)
+            torch.set_num_threads(1)
             for filename, factory, scale in [("2.7_80x80_MiniFASNetV2.pth", MiniFASNetV2, 2.7),
                                              ("4_0_0_80x80_MiniFASNetV1SE.pth", MiniFASNetV1SE, 4.0)]:
                 model = factory(conv6_kernel=(5, 5))
