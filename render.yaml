@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: legacyvault-ekyc
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    region: singapore
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHONUTF8
+        value: "1"
+      - key: EKYC_HOST
+        value: "0.0.0.0"

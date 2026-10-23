@@ -15,4 +15,6 @@ sys.dont_write_bytecode = True
 
 if __name__ == '__main__':
     import uvicorn
-    uvicorn.run('server:app', host=os.environ.get('EKYC_HOST', '127.0.0.1'), port=int(os.environ.get('EKYC_PORT', '8879')), access_log=False)
+    host = os.environ.get('EKYC_HOST', '0.0.0.0')
+    port = int(os.environ.get('PORT') or os.environ.get('EKYC_PORT') or '8879')
+    uvicorn.run('server:app', host=host, port=port, access_log=False)
