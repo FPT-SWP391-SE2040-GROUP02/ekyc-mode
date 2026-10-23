@@ -55,11 +55,14 @@ async def lifespan(_):
 
 
 app = FastAPI(title="LegacyVault eKYC prototype", version="0.2.2", lifespan=lifespan)
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "[::1]"]
-for extra_host in os.environ.get("EKYC_ALLOWED_HOSTS", "").split(","):
-    if extra_host.strip():
-        ALLOWED_HOSTS.append(extra_host.strip())
-# Khi triển khai: đặt EKYC_API_KEY thì mọi /api/* (trừ /api/health) phải gửi header X-Ekyc-Key khớp.
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "[::1]", "*.onrender.com", "legacyvault-ekyc.onrender.com"]
+raw_hosts = os.environ.get("EKYC_ALLOWED_HOSTS", "*").strip()
+if raw_hosts == "*" or "*" in raw_hosts.split(","):
+    ALLOWED_HOSTS = ["*"]
+else:
+    for extra_host in raw_hosts.split(","):
+        if extra_host.strip():
+            ALLOWED_HOSTS.append(extra_host.strip())
 API_KEY = os.environ.get("EKYC_API_KEY", "")
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
@@ -81,7 +84,11 @@ async def require_api_key(request: Request, call_next):
 async def local_requests(request: Request, call_next):
     origin = request.headers.get("origin")
     if request.method not in {"GET", "HEAD", "OPTIONS"} and origin:
-        if origin not in {"http://127.0.0.1:8877", "http://localhost:8877", "http://127.0.0.1:8878", "http://localhost:8878", "http://127.0.0.1:8879", "http://localhost:8879"}:
+        allowed_origins = {"http://127.0.0.1:8877", "http://localhost:8877", "http://127.0.0.1:8878", "http://localhost:8878", "http://127.0.0.1:8879", "http://localhost:8879", "https://legacyvault-swart.vercel.app", "https://legacyvault-api.onrender.com"}
+        custom_origins = os.environ.get("EKYC_ALLOWED_ORIGINS", "")
+        if custom_origins:
+            allowed_origins.update([o.strip() for o in custom_origins.split(",") if o.strip()])
+        if "*" not in allowed_origins and origin not in allowed_origins:
             return JSONResponse({"detail": "Chỉ nhận thao tác từ giao diện local của prototype."}, status_code=403)
     response = await call_next(request)
     response.headers["Cache-Control"] = "no-store"
