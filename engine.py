@@ -59,6 +59,8 @@ class Models:
     def __init__(self):
         self.ocr = self.vietocr = self.detector = self.recognizer = self.landmarker = None
         self.pad_models = []
+        self._face_init_ok = False
+        self._face_init_error = None
 
     def readiness(self):
         groups = {"ocr": ["PP-OCRv5_mobile_det/inference.yml", "PP-OCRv6_small_rec/inference.yml",
@@ -66,13 +68,29 @@ class Models:
                   "face": ["yunet.onnx", "sface.onnx"],
                   "landmarks": ["face_landmarker.task"],
                   "anti_spoof": ["2.7_80x80_MiniFASNetV2.pth", "4_0_0_80x80_MiniFASNetV1SE.pth"]}
-        return {key: all((MODELS / item).exists() for item in items) for key, items in groups.items()}
+        result = {key: all((MODELS / item).exists() for item in items) for key, items in groups.items()}
+        # R8: phân biệt "weights đủ" với "weights đủ + face đã khởi tạo thật".
+        result["face_loaded"] = self._face_init_ok
+        if self._face_init_error:
+            result["face_error"] = self._face_init_error
+        return result
 
     def init_face(self):
         if self.detector is None:
-            self.detector = cv2.FaceDetectorYN.create(str(MODELS / "yunet.onnx"), "", (320, 320),
-                                                      0.85, 0.3, 5000)
-            self.recognizer = cv2.FaceRecognizerSF.create(str(MODELS / "sface.onnx"), "")
+            try:
+                self.detector = cv2.FaceDetectorYN.create(str(MODELS / "yunet.onnx"), "", (320, 320),
+                                                          0.85, 0.3, 5000)
+                self.recognizer = cv2.FaceRecognizerSF.create(str(MODELS / "sface.onnx"), "")
+                self._face_init_ok = True
+                self._face_init_error = None
+            except Exception as exc:  # noqa: BLE001 - weight hỏng phải hiện ra ở /api/health, không đợi request đầu
+                self._face_init_error = f"{type(exc).__name__}: {exc}"
+                raise
+
+    # R8 (audit 2026-10-27): readiness() chỉ kiểm tra file tồn tại; init_face()
+    # cho biết weight có NẠP ĐƯỢC thật không (file hỏng → lỗi ở lần dùng đầu, 503).
+    _face_init_ok: bool = False
+    _face_init_error: str | None = None
 
     def _face_upright(self, image):
         self.init_face()

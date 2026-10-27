@@ -62,15 +62,16 @@ Biến môi trường (đều tùy chọn):
 |---|---|---|
 | `EKYC_PORT` | Cổng lắng nghe | `8879` |
 | `EKYC_HOST` | Địa chỉ lắng nghe | `127.0.0.1` |
-| `EKYC_ALLOWED_HOSTS` | Danh sách Host được nhận thêm, cách nhau bằng dấu phẩy | chỉ `127.0.0.1`, `localhost`, `[::1]` |
+| `EKYC_ALLOWED_HOSTS` | Danh sách Host được nhận thêm, cách nhau bằng dấu phẩy (không nhận `*`) | `127.0.0.1`, `localhost`, `[::1]`, `legacyvault-ekyc.onrender.com` |
+| `EKYC_ALLOWED_ORIGINS` | Danh sách Origin (scheme://host[:port]) được phép gọi thay đổi, cách nhau bằng dấu phẩy | chỉ các Origin chính thức (trên + các port local 5173/5000/8877/8878/8879) |
 | `EKYC_API_KEY` | Nếu đặt, mọi `/api/*` (trừ `/api/health`) phải gửi header `X-Ekyc-Key` khớp, sai hoặc thiếu trả `401` | không đặt (không kiểm tra) |
 | `EKYC_BASE_DIR` | Thư mục chứa `.venv` và `models` | Thư mục của `START.cmd` |
 | `EKYC_MODELS_DIR` | Thư mục model | `<EKYC_BASE_DIR>\models` |
 
 ## Bảo mật mạng
 
-- Mặc định dịch vụ chỉ lắng nghe `127.0.0.1` và chỉ nhận Host `127.0.0.1`, `localhost`, `[::1]`. **Dùng cùng máy với Backend, không đưa ra Internet.**
-- Các yêu cầu có header `Origin` chỉ được chấp nhận từ giao diện local (cổng 8877 đến 8879). Backend gọi trực tiếp, không có `Origin`, nên không bị chặn.
+- Mặc định dịch vụ chỉ lắng nghe `127.0.0.1` và chỉ nhận Host `127.0.0.1`, `localhost`, `[::1]` cùng host Render đã duyệt. **Dùng cùng máy với Backend, không đưa ra Internet.**
+- Các yêu cầu có header `Origin` chỉ được chấp nhận theo danh sách **khớp chính xác** (không wildcard): port local 5173/5000/8877–8879, `https://legacyvault-swart.vercel.app`, `https://legacyvault-api.onrender.com`. Mở rộng chỉ qua `EKYC_ALLOWED_ORIGINS`. Backend gọi trực tiếp, không có `Origin`, nên không bị chặn.
 - Chỉ khi cần chạy ở máy khác (ví dụ một máy chung cho cả nhóm): đặt `EKYC_HOST=0.0.0.0`, `EKYC_ALLOWED_HOSTS=<tên hoặc IP máy>` **và bắt buộc đặt `EKYC_API_KEY`**. Backend gửi khóa này trong header `X-Ekyc-Key` khi cấu hình `Ekyc:ApiKey` (đặt bằng `dotnet user-secrets`, không commit). Dịch vụ chưa mã hóa đường truyền nên chỉ dùng trong mạng tin cậy.
 
 ## API
