@@ -55,14 +55,14 @@ async def lifespan(_):
 
 
 app = FastAPI(title="LegacyVault eKYC prototype", version="0.2.2", lifespan=lifespan)
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "[::1]", "*.onrender.com", "legacyvault-ekyc.onrender.com"]
-raw_hosts = os.environ.get("EKYC_ALLOWED_HOSTS", "*").strip()
-if raw_hosts == "*" or "*" in raw_hosts.split(","):
-    ALLOWED_HOSTS = ["*"]
-else:
-    for extra_host in raw_hosts.split(","):
-        if extra_host.strip():
-            ALLOWED_HOSTS.append(extra_host.strip())
+# R3 (audit 2026-10-27): không wildcard. Host mặc định chỉ local + host Render đã duyệt;
+# môi trường chỉ được NỚI RỘNG thêm host cụ thể (không nhận "*" — các entry "*" bị bỏ qua).
+DEFAULT_ALLOWED_HOSTS = ["127.0.0.1", "localhost", "[::1]", "legacyvault-ekyc.onrender.com"]
+ALLOWED_HOSTS = list(DEFAULT_ALLOWED_HOSTS)
+for extra_host in os.environ.get("EKYC_ALLOWED_HOSTS", "").split(","):
+    extra = extra_host.strip()
+    if extra and extra != "*":
+        ALLOWED_HOSTS.append(extra)
 API_KEY = os.environ.get("EKYC_API_KEY", "")
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
@@ -84,16 +84,21 @@ async def require_api_key(request: Request, call_next):
 async def local_requests(request: Request, call_next):
     origin = request.headers.get("origin")
     if request.method not in {"GET", "HEAD", "OPTIONS"} and origin:
-        allowed_origins = {"http://127.0.0.1:8877", "http://localhost:8877", "http://127.0.0.1:8878", "http://localhost:8878", "http://127.0.0.1:8879", "http://localhost:8879", "https://legacyvault-swart.vercel.app", "https://legacyvault-api.onrender.com"}
+        # R3 (audit 2026-10-27): so khớp origin EXACT, không suffix-match (*.vercel.app /
+        # *.onrender.com) để bất kỳ subdomain nào của Vercel/Render không gọi được API.
+        allowed_origins = {
+            "http://127.0.0.1:8877", "http://localhost:8877",
+            "http://127.0.0.1:8878", "http://localhost:8878",
+            "http://127.0.0.1:8879", "http://localhost:8879",
+            "http://127.0.0.1:5173", "http://localhost:5173",
+            "http://127.0.0.1:5000", "http://localhost:5000",
+            "https://legacyvault-swart.vercel.app",
+            "https://legacyvault-api.onrender.com",
+        }
         custom_origins = os.environ.get("EKYC_ALLOWED_ORIGINS", "")
         if custom_origins:
-            allowed_origins.update([o.strip() for o in custom_origins.split(",") if o.strip()])
-        is_allowed = (
-            "*" in allowed_origins
-            or origin in allowed_origins
-            or origin.endswith(".vercel.app")
-            or origin.endswith(".onrender.com")
-        )
+            allowed_origins.update(o.strip() for o in custom_origins.split(",") if o.strip() and o.strip() != "*")
+        is_allowed = origin in allowed_origins
         if not is_allowed:
             return JSONResponse({"detail": "Chỉ nhận thao tác từ giao diện local của prototype."}, status_code=403)
     response = await call_next(request)
@@ -128,7 +133,9 @@ def home():
 
 @app.get("/api/health")
 def health():
-    return {"device": "CPU", "models": models.readiness(), "stores_uploads": False,
+    readiness = models.readiness()
+    return {"device": "CPU", "models": readiness, "stores_uploads": False,
+            "models_loaded": bool(readiness.get("face_loaded")),
             "scope": "prototype", "version": "0.2.2", "document_side_detection": True,
             "face_reference_source": "scanned_document_front",
             "face_detection_strategy": "original_then_640_320"}
