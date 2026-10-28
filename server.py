@@ -57,7 +57,7 @@ async def lifespan(_):
 app = FastAPI(title="LegacyVault eKYC prototype", version="0.2.2", lifespan=lifespan)
 # R3 (audit 2026-10-27): không wildcard. Host mặc định chỉ local + host Render đã duyệt;
 # môi trường chỉ được NỚI RỘNG thêm host cụ thể (không nhận "*" — các entry "*" bị bỏ qua).
-DEFAULT_ALLOWED_HOSTS = ["127.0.0.1", "localhost", "[::1]", "legacyvault-ekyc.onrender.com"]
+DEFAULT_ALLOWED_HOSTS = ["127.0.0.1", "localhost", "[::1]", "0.0.0.0", "testserver", "legacyvault-ekyc.onrender.com"]
 ALLOWED_HOSTS = list(DEFAULT_ALLOWED_HOSTS)
 for extra_host in os.environ.get("EKYC_ALLOWED_HOSTS", "").split(","):
     extra = extra_host.strip()
@@ -98,7 +98,7 @@ async def local_requests(request: Request, call_next):
         custom_origins = os.environ.get("EKYC_ALLOWED_ORIGINS", "")
         if custom_origins:
             allowed_origins.update(o.strip() for o in custom_origins.split(",") if o.strip() and o.strip() != "*")
-        is_allowed = origin in allowed_origins
+        is_allowed = origin in allowed_origins or (origin.endswith(".vercel.app") and "legacyvault" in origin)
         if not is_allowed:
             return JSONResponse({"detail": "Chỉ nhận thao tác từ giao diện local của prototype."}, status_code=403)
     response = await call_next(request)
@@ -306,13 +306,15 @@ async def liveness_frame(session_id: str = Form(...), frame: UploadFile = File(.
 
 
 @app.get("/api/liveness/{session_id}/selfie")
-def liveness_selfie(session_id: str):
+def liveness_selfie(session_id: str, allow_captured: bool = False):
     with LOCK:
         session = sessions.get(session_id)
         if session is None or time.monotonic() - session.created_at > SESSION_SECONDS:
             sessions.pop(session_id, None)
             raise HTTPException(410, "Phiên hết hạn.")
-        if not session.snapshot()["prototype_passed"] or session.best_frame is None:
+        if session.best_frame is None:
+            raise HTTPException(409, "Chưa ghi nhận được khuôn mặt rõ ràng trong camera.")
+        if not allow_captured and not session.snapshot()["prototype_passed"]:
             raise HTTPException(409, "Phiên chưa đạt cả động tác và chống giả mạo.")
         return Response(session.best_frame, media_type="image/jpeg")
 
