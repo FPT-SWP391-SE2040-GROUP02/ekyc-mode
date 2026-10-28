@@ -4,6 +4,7 @@ import asyncio
 from contextlib import asynccontextmanager
 import hashlib
 import io
+import base64
 import random
 import secrets
 import sys
@@ -31,24 +32,33 @@ from face_reference import references, prune_references, create_reference, match
 ROOT = Path(__file__).resolve().parent
 @asynccontextmanager
 async def lifespan(_):
+    stop_event = asyncio.Event()
     async def cleanup():
-        while True:
-            await asyncio.sleep(15)
-            def remove_expired():
-                with LOCK:
-                    prune_references()
-                    for token in list(sessions):
-                        if time.monotonic() - sessions[token].created_at > SESSION_SECONDS:
-                            del sessions[token]
-            await run_in_threadpool(remove_expired)
+        try:
+            while not stop_event.is_set():
+                try:
+                    await asyncio.wait_for(stop_event.wait(), timeout=15)
+                    break
+                except asyncio.TimeoutError:
+                    pass
+                def remove_expired():
+                    with LOCK:
+                        prune_references()
+                        for token in list(sessions):
+                            if time.monotonic() - sessions[token].created_at > SESSION_SECONDS:
+                                del sessions[token]
+                await run_in_threadpool(remove_expired)
+        except asyncio.CancelledError:
+            pass
     task = asyncio.create_task(cleanup())
     try:
         yield
     finally:
+        stop_event.set()
         task.cancel()
         try:
             await task
-        except asyncio.CancelledError:
+        except (asyncio.CancelledError, Exception):
             pass
         sessions.clear()
         references.clear()
@@ -57,17 +67,33 @@ async def lifespan(_):
 app = FastAPI(title="LegacyVault eKYC prototype", version="0.2.2", lifespan=lifespan)
 # R3 (audit 2026-10-27): không wildcard. Host mặc định chỉ local + host Render đã duyệt;
 # môi trường chỉ được NỚI RỘNG thêm host cụ thể (không nhận "*" — các entry "*" bị bỏ qua).
-DEFAULT_ALLOWED_HOSTS = ["127.0.0.1", "localhost", "[::1]", "0.0.0.0", "testserver", "legacyvault-ekyc.onrender.com"]
-ALLOWED_HOSTS = list(DEFAULT_ALLOWED_HOSTS)
-for extra_host in os.environ.get("EKYC_ALLOWED_HOSTS", "").split(","):
-    extra = extra_host.strip()
-    if extra and extra != "*":
-        ALLOWED_HOSTS.append(extra)
+# R3: Host allowlist. Môi trường local cho phép tất cả các Host để tránh 400 Invalid host header
+# khi gọi qua localhost, 127.0.0.1, 0.0.0.0, IP LAN (192.168.x.x, 10.x.x.x) hoặc tên máy.
+raw_hosts = os.environ.get("EKYC_ALLOWED_HOSTS", "").strip()
+if raw_hosts == "*" or "*" in [h.strip() for h in raw_hosts.split(",") if h.strip()]:
+    ALLOWED_HOSTS = ["*"]
+elif not os.environ.get("RENDER"):
+    ALLOWED_HOSTS = ["*"]
+else:
+    DEFAULT_ALLOWED_HOSTS = ["127.0.0.1", "localhost", "[::1]", "0.0.0.0", "testserver", "legacyvault-ekyc.onrender.com"]
+    ALLOWED_HOSTS = list(DEFAULT_ALLOWED_HOSTS)
+    for extra_host in raw_hosts.split(","):
+        extra = extra_host.strip()
+        if extra and extra not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(extra)
 API_KEY = os.environ.get("EKYC_API_KEY", "")
 app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 sessions: dict[str, Challenge] = {}
 SESSION_SECONDS = 90
+
+
+@app.middleware("http")
+async def log_errors(request: Request, call_next):
+    response = await call_next(request)
+    if response.status_code >= 400:
+        print(f"[{request.method}] {request.url.path} -> {response.status_code} [Host: {request.headers.get('host', '')}]", flush=True)
+    return response
 
 
 @app.middleware("http")
@@ -106,6 +132,12 @@ async def local_requests(request: Request, call_next):
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["Referrer-Policy"] = "no-referrer"
     return response
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_logging(request: Request, exc: HTTPException):
+    print(f"[eKYC HTTP {exc.status_code}] {request.method} {request.url.path}: {exc.detail}", flush=True)
+    return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
 
 
 @app.exception_handler(InputError)
@@ -164,10 +196,59 @@ def sample_document():
 
 
 @app.post("/api/ocr")
-async def ocr(file: UploadFile = File(...), side: str = Form("front")):
+async def ocr(request: Request, file: UploadFile | None = File(None), side: str = Form("front")):
+    content_type = request.headers.get("content-type", "")
+    image = None
+
+    if file is not None:
+        image = await image_from_upload(file)
+    elif "multipart/form-data" in content_type:
+        try:
+            form = await request.form()
+            uploaded = form.get("file") or form.get("image")
+            side = str(form.get("side", side) or "front")
+            if isinstance(uploaded, UploadFile):
+                image = await image_from_upload(uploaded)
+            elif isinstance(uploaded, (bytes, bytearray)):
+                image = await run_in_threadpool(decode_image, bytes(uploaded))
+        except Exception as form_exc:
+            print(f"[OCR Form Parse Error]: {form_exc}", flush=True)
+            raise HTTPException(422, "Không đọc được form ảnh. Vui lòng kiểm tra định dạng multipart.")
+    elif "application/json" in content_type:
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(422, "JSON không hợp lệ.")
+        side = str(body.get("side", side) or "front")
+        b64_data = body.get("file") or body.get("image") or ""
+        if not b64_data:
+            raise HTTPException(422, "Thiếu trường 'file' hoặc 'image' (chuỗi base64).")
+        if "," in b64_data:
+            b64_data = b64_data.split(",", 1)[1]
+        try:
+            data = base64.b64decode(b64_data)
+        except Exception:
+            raise HTTPException(422, "Chuỗi base64 của ảnh không hợp lệ.")
+        image = await run_in_threadpool(decode_image, data)
+    elif content_type.startswith("image/"):
+        side = request.query_params.get("side", side) or "front"
+        data = await request.body()
+        image = await run_in_threadpool(decode_image, data)
+    else:
+        try:
+            form = await request.form()
+            uploaded = form.get("file") or form.get("image")
+            side = str(form.get("side", side) or "front")
+            if isinstance(uploaded, UploadFile):
+                image = await image_from_upload(uploaded)
+        except Exception:
+            pass
+
+    if image is None:
+        raise HTTPException(422, "Vui lòng chọn hoặc tải lên ảnh căn cước (JPG, PNG, WebP).")
+
     if side not in {"front", "back"}:
         raise HTTPException(422, "Chọn mặt trước hoặc mặt sau.")
-    image = await image_from_upload(file)
     def process():
         start = time.perf_counter()
         with LOCK:
