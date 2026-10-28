@@ -16,13 +16,25 @@ sys.dont_write_bytecode = True
 if __name__ == '__main__':
     # Ensure model weights exist before launching server
     try:
-        from engine import models
-        readiness = models.readiness()
-        if not all(readiness.values()):
+        from engine import models, MODELS
+        groups = {
+            "ocr": ["PP-OCRv5_mobile_det/inference.yml", "PP-OCRv6_small_rec/inference.yml",
+                    "vgg_seq2seq.pth", "vietocr-base.yml", "vietocr-vgg-seq2seq.yml"],
+            "face": ["yunet.onnx", "sface.onnx"],
+            "landmarks": ["face_landmarker.task"],
+            "anti_spoof": ["2.7_80x80_MiniFASNetV2.pth", "4_0_0_80x80_MiniFASNetV1SE.pth"],
+        }
+        weights_missing = not all((MODELS / item).exists() for items in groups.values() for item in items)
+        if weights_missing:
+            readiness = models.readiness()
             print(f"Missing models detected: {readiness}. Downloading missing weights...", flush=True)
             import download_models
             download_models.main()
             print("Model download completed successfully.", flush=True)
+        try:
+            models.init_face()
+        except Exception as init_exc:
+            print(f"Notice during face model init: {init_exc}", flush=True)
     except Exception as exc:
         print(f"Warning during model readiness check: {exc}", flush=True)
 
