@@ -13,6 +13,8 @@ def plain(text):
 
 NAME_LABEL = re.compile(r"\b(?:ho\s*[,;]?\s*(?:chu\s+dem\s*[,;]?\s*)?(?:va\s*)?ten(?:\s+khai\s+sinh)?|full\s*name)\b")
 BIRTH_LABEL = re.compile(r"\b(?:ngay\s*[,.;]?\s*(?:thang\s*[,.;]?\s*nam\s*)?sinh|date\s*of\s*birth|sinh\s*/)")
+EXPIRY_LABEL = re.compile(r"\b(?:co\s*gia\s*tri\s*den|date\s*of\s*expiry|co\s*gia\s*tri|gia\s*tri\s*den|ngay\s*het\s*han|het\s*han|han\s*su\s*dung|han\s*dung|han\s*den|valid\s*until|expiry)\b")
+NO_EXPIRY_PATTERN = re.compile(r"\b(?:khong\s*(?:co\s*)?thoi\s*han|vo\s*thoi\s*han|no\s*expiry|unlimited)\b")
 RESIDENCE_LABEL = re.compile(r"\b(?:noi\s*(?:thuong\s*tru|cu\s*tru)|p[li]ace\s*of\s*residen\w*)\b")
 OTHER_FIELD = re.compile(r"\b(?:ngay\s*[,.;]?\s*(?:thang\s*[,.;]?\s*nam\s*)?sinh|date\s*of\s*birth|gioi\s*tinh|sex|gender|quoc\s*tich|nationality|que\s*quan|place\s*of\s*origin|noi\s*dang\s*ky\s*khai\s*sinh|place\s*of\s*birth|noi\s*(?:thuong\s*tru|cu\s*tru)|place\s*of\s*residence|ngay.*(?:het\s*han|cap)|date\s*of\s*(?:expiry|issue)|co\s*gia\s*tri|bo\s*cong\s*an|ministry|can\s*cuoc|identity\s*card)\b")
 DATE_PATTERN = re.compile(r"(?<!\d)(\d{1,2})\s*[./-]\s*(\d{1,2})\s*[./-]\s*(\d{4})(?!\d)")
@@ -122,6 +124,57 @@ def extract_birthday(lines):
     return '', ''
 
 
+def extract_expiry(lines):
+    for i, label in enumerate(lines):
+        if not label_in(label, EXPIRY_LABEL):
+            continue
+        lb = bounds(label)
+        candidates = []
+        for j, line in enumerate(lines):
+            box = bounds(line)
+            if lb and box:
+                h = max(8, lb[3] - lb[1], box[3] - box[1])
+                dy = (box[1] + box[3] - lb[1] - lb[3]) / 2
+                if not -.65 * h <= dy <= 2.7 * h or box[2] < lb[0] - h:
+                    continue
+                distance = abs(dy) / h + max(0, lb[0] - box[0]) / (h * 4)
+            else:
+                if not i <= j < i + 3:
+                    continue
+                distance = j - i
+            for key in ('text', 'paddle_text'):
+                val_text = line.get(key, '')
+                if NO_EXPIRY_PATTERN.search(plain(val_text)):
+                    candidates.append((distance, 'Không thời hạn', val_text))
+                for match in DATE_PATTERN.finditer(val_text):
+                    try:
+                        exp = date(int(match[3]), int(match[2]), int(match[1]))
+                        if 1990 <= exp.year <= 2150:
+                            candidates.append((distance, exp.isoformat(), val_text))
+                    except ValueError:
+                        pass
+        if candidates:
+            _, value, source = min(candidates, key=lambda item: item[0])
+            return value, source
+
+    # Fallback: quét trực tiếp xem có dòng nào chứa nhãn expiry hoặc không thời hạn
+    for line in lines:
+        for key in ('text', 'paddle_text'):
+            val_text = line.get(key, '')
+            p_text = plain(val_text)
+            if EXPIRY_LABEL.search(p_text):
+                if NO_EXPIRY_PATTERN.search(p_text):
+                    return 'Không thời hạn', val_text
+                for match in DATE_PATTERN.finditer(val_text):
+                    try:
+                        exp = date(int(match[3]), int(match[2]), int(match[1]))
+                        if 1990 <= exp.year <= 2150:
+                            return exp.isoformat(), val_text
+                    except ValueError:
+                        pass
+    return '', ''
+
+
 def residence_value(raw):
     text = unicodedata.normalize('NFC', raw).strip()
     # Remove the complete bilingual label, keeping any inline address.
@@ -183,7 +236,7 @@ def extract_residence(lines):
 
 
 def extract_fields(lines, side='front'):
-    result = {'id_number': '', 'full_name': '', 'date_of_birth': '', 'residence_address': ''}
+    result = {'id_number': '', 'full_name': '', 'date_of_birth': '', 'date_of_expiry': '', 'residence_address': ''}
     sources = {}
     for line in lines:
         for match in re.finditer(r'(?<!\d)(?:\d[ \t]*){12}(?![ \t]*\d)', line['text']):
@@ -193,7 +246,7 @@ def extract_fields(lines, side='front'):
         if result['id_number']:
             break
     if side == 'front':
-        for field_name, extractor in [('full_name', extract_full_name), ('date_of_birth', extract_birthday)]:
+        for field_name, extractor in [('full_name', extract_full_name), ('date_of_birth', extract_birthday), ('date_of_expiry', extract_expiry)]:
             value, source = extractor(lines)
             result[field_name] = value
             if value:
@@ -310,4 +363,3 @@ class Challenge:
                 "pad_passed": pad_pass, "prototype_passed": finished and pad_pass,
                 "failed_reason": self.failed_reason, "frames": self.frames,
                 "note": "Kết quả thử nghiệm; chưa bảo đảm chống deepfake/video phát lại hoặc xác thực CCCD."}
-

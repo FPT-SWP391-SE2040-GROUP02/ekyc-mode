@@ -21,6 +21,21 @@ class LogicTests(unittest.TestCase):
         self.assertEqual(result["fields"]["id_number"], "000000000001")
         self.assertEqual(result["fields"]["full_name"], "NGUYỄN VĂN AN")
         self.assertEqual(result["fields"]["date_of_birth"], "")
+        self.assertEqual(result["fields"]["date_of_expiry"], "2040-02-01")
+
+    def test_extract_expiry_variants(self):
+        cases = [
+            ("Có giá trị đến / Date of expiry: 15/10/2035", "2035-10-15"),
+            ("Có giá trị đến / Date of expiry\n15/10/2035", "2035-10-15"),
+            ("Có giá trị đến: Không thời hạn", "Không thời hạn"),
+            ("Date of expiry: No expiry", "Không thời hạn"),
+            ("Hạn sử dụng: 20/12/2030", "2030-12-20"),
+        ]
+        for text, expected in cases:
+            with self.subTest(text=text):
+                lines = [{"text": line, "score": 0.99} for line in text.split("\n")]
+                res = extract_fields(lines)
+                self.assertEqual(res["fields"]["date_of_expiry"], expected)
 
     def test_name_label_variants_and_unicode(self):
         import unicodedata
