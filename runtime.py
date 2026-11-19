@@ -13,7 +13,23 @@ os.environ.setdefault('PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK', 'True')
 os.environ.setdefault('DISABLE_MODEL_SOURCE_CHECK', 'True')
 sys.dont_write_bytecode = True
 
+LOOPBACK_HOSTS = ('127.0.0.1', 'localhost', '::1')
+
+
+def api_key_error(host, api_key):
+    """Lỗi khi dịch vụ lắng nghe ngoài máy này mà chưa có khóa API; hợp lệ thì trả None."""
+    if host in LOOPBACK_HOSTS or api_key.strip():
+        return None
+    return (f'EKYC_HOST={host} mở dịch vụ ra ngoài máy này nên bắt buộc đặt EKYC_API_KEY '
+            '(Backend gửi cùng khóa trong header X-Ekyc-Key). Dịch vụ không khởi động.')
+
+
 if __name__ == '__main__':
+    host = os.environ.get('EKYC_HOST', '127.0.0.1')
+    error = api_key_error(host, os.environ.get('EKYC_API_KEY', ''))
+    if error:
+        print(error, flush=True)
+        sys.exit(1)
     # Ensure model weights exist before launching server
     try:
         from engine import models, MODELS
@@ -39,6 +55,5 @@ if __name__ == '__main__':
         print(f"Warning during model readiness check: {exc}", flush=True)
 
     import uvicorn
-    host = os.environ.get('EKYC_HOST', '0.0.0.0')
     port = int(os.environ.get('PORT') or os.environ.get('EKYC_PORT') or '8879')
     uvicorn.run('server:app', host=host, port=port, access_log=False)

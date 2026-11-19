@@ -64,7 +64,7 @@ Biến môi trường (đều tùy chọn):
 | `EKYC_HOST` | Địa chỉ lắng nghe | `127.0.0.1` |
 | `EKYC_ALLOWED_HOSTS` | Danh sách Host được nhận thêm, cách nhau bằng dấu phẩy (không nhận `*`) | `127.0.0.1`, `localhost`, `[::1]`, `legacyvault-ekyc.onrender.com` |
 | `EKYC_ALLOWED_ORIGINS` | Danh sách Origin (scheme://host[:port]) được phép gọi thay đổi, cách nhau bằng dấu phẩy | chỉ các Origin chính thức (trên + các port local 5173/5000/8877/8878/8879) |
-| `EKYC_API_KEY` | Nếu đặt, mọi `/api/*` (trừ `/api/health`) phải gửi header `X-Ekyc-Key` khớp, sai hoặc thiếu trả `401` | không đặt (không kiểm tra) |
+| `EKYC_API_KEY` | Nếu đặt, mọi `/api/*` (trừ `/api/health`) phải gửi header `X-Ekyc-Key` khớp, sai hoặc thiếu trả `401`. **Bắt buộc** khi `EKYC_HOST` không phải `127.0.0.1`/`localhost`/`::1`: thiếu thì dịch vụ không khởi động | không đặt (chỉ chạy được khi lắng nghe localhost) |
 | `EKYC_BASE_DIR` | Thư mục chứa `.venv` và `models` | Thư mục của `START.cmd` |
 | `EKYC_MODELS_DIR` | Thư mục model | `<EKYC_BASE_DIR>\models` |
 

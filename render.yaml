@@ -12,3 +12,6 @@ services:
         value: "1"
       - key: EKYC_HOST
         value: "0.0.0.0"
+      # Bắt buộc: dịch vụ mở ra ngoài (EKYC_HOST=0.0.0.0) nên không khởi động nếu thiếu. Đặt cùng giá trị cho Ekyc__ApiKey của API.
+      - key: EKYC_API_KEY
+        sync: false
