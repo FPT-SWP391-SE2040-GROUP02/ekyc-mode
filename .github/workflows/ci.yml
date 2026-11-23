@@ -1,0 +1,23 @@
+name: eKYC checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  light-tests:
+    # Chỉ chạy các test không cần file model và không cần torch/paddle/mediapipe (nên không phải tải ~2 GB):
+    # chốt bắt buộc EKYC_API_KEY khi mở dịch vụ ra ngoài, trần kích thước request, luật bóc tách trường CCCD.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install only what the light tests import
+        run: pip install "fastapi>=0.115,<1" "python-multipart>=0.0.20" "httpx>=0.28,<1" "numpy>=2,<2.4" "pillow==10.2.0" "opencv-contrib-python-headless==4.10.0.84"
+      - name: Run tests
+        run: python -m unittest test_runtime_guard test_request_size test_regressions
