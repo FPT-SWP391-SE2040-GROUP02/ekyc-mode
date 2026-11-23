@@ -86,6 +86,8 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
 app.mount("/static", StaticFiles(directory=ROOT / "static"), name="static")
 sessions: dict[str, Challenge] = {}
 SESSION_SECONDS = 90
+# Ảnh tối đa MAX_BYTES; base64 và phần đầu multipart làm nội dung request lớn hơn ảnh khoảng 1/3.
+MAX_REQUEST_BYTES = MAX_BYTES * 3 // 2
 
 
 @app.middleware("http")
@@ -103,6 +105,16 @@ async def require_api_key(request: Request, call_next):
         sent = request.headers.get("x-ekyc-key", "")
         if not secrets.compare_digest(sent.encode("utf-8"), API_KEY.encode("utf-8")):
             return JSONResponse({"detail": "Thiếu hoặc sai khóa API."}, status_code=401)
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def limit_request_size(request: Request, call_next):
+    # request.json() / request.form() nạp cả nội dung vào RAM trước khi engine kiểm MAX_BYTES; trần RAM chỉ 512 MB.
+    # shortcut: chỉ kiểm Content-Length; request chunked không có header này vẫn lọt, nâng cấp khi đặt dịch vụ sau proxy giới hạn body.
+    declared = request.headers.get("content-length", "")
+    if declared.isdigit() and int(declared) > MAX_REQUEST_BYTES:
+        return JSONResponse({"detail": "Nội dung yêu cầu quá lớn."}, status_code=413)
     return await call_next(request)
 
 
